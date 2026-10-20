@@ -1,9 +1,49 @@
-import React from 'react'
+import React, { useRef, useState } from 'react'
 import { ArrowRight, BookOpen, Flame, RotateCcw, Target, TrendingUp } from 'lucide-react'
+import { api } from '../api.js'
 import { navigate } from '../App.jsx'
 
 export default function Overview({ lessons, overview, onRefresh }) {
+  const [backupMsg, setBackupMsg] = useState('')
+  const fileRef = useRef(null)
+
   if (!lessons.length || !overview) return <div className="loading-block">正在读取学习进度…</div>
+
+  const progress = api.progressSummary()
+
+  function exportBackup() {
+    const data = api.exportProgress()
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `minna-progress-${new Date().toISOString().slice(0, 10)}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+    setBackupMsg('备份已导出')
+  }
+
+  async function importBackup(event) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    try {
+      const data = JSON.parse(await file.text())
+      const result = await api.importProgress(data)
+      setBackupMsg(`已导入 ${result.words} 个单词、${result.questions} 道题的进度`)
+      onRefresh?.()
+    } catch (err) {
+      setBackupMsg(err.message || '导入失败')
+    } finally {
+      event.target.value = ''
+    }
+  }
+
+  function resetAll() {
+    if (!window.confirm('确定清空本机所有学习进度？此操作不可恢复。')) return
+    api.resetProgress()
+    setBackupMsg('已清空本机进度')
+    onRefresh?.()
+  }
 
   const suggested = [...lessons]
     .filter((l) => l.due > 0 || l.wrong_words > 0)
@@ -106,6 +146,23 @@ export default function Overview({ lessons, overview, onRefresh }) {
             <h3>错题优先</h3>
             <p>刷题模式选“错题重刷”，系统按答错次数从多到少排序，先把最常错的题解决掉。</p>
           </div>
+        </div>
+      </section>
+
+      <section className="backup-panel">
+        <div>
+          <p className="eyebrow">LOCAL DATA</p>
+          <h3>本机进度备份</h3>
+          <p className="muted">
+            已记录 {progress.words} 个单词、{progress.questions} 道题的进度。数据只存在当前浏览器，清理浏览器数据会丢失，建议定期导出。
+          </p>
+          {backupMsg && <p className="backup-msg">{backupMsg}</p>}
+        </div>
+        <div className="backup-actions">
+          <button className="ghost-btn" onClick={exportBackup}>导出备份</button>
+          <button className="ghost-btn" onClick={() => fileRef.current?.click()}>导入备份</button>
+          <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={importBackup} />
+          <button className="text-btn danger" onClick={resetAll}>清空进度</button>
         </div>
       </section>
     </div>

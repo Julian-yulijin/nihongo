@@ -4,8 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/dev.mjs",
+    "dev": "vite --host",
     "build": "vite build",
+    "build:pages": "vite build --base=/nihongo/",
+    "preview:pages": "vite preview --base=/nihongo/ --port 4173",
     "start": "node server/index.js",
     "seed": "node scripts/seed.mjs",
     "data:zh": "node scripts/fetch-zh.mjs",

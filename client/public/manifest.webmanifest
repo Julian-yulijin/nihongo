@@ -1,0 +1,20 @@
+{
+  "name": "みんなの日本語 · 五十课",
+  "short_name": "五十课",
+  "description": "大家的日语初级 1、2 册 50 课背单词与刷题",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f1e7",
+  "theme_color": "#1c2a45",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

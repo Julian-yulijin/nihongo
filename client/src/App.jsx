@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { BookOpen, LayoutGrid, ListChecks, LogOut, Shield, Sparkles } from 'lucide-react'
+import { BookOpen, LayoutGrid, ListChecks, Sparkles } from 'lucide-react'
 import { api } from './api.js'
-import Login from './pages/Login.jsx'
 import Overview from './pages/Overview.jsx'
 import Words from './pages/Words.jsx'
 import Quiz from './pages/Quiz.jsx'
-import Admin from './pages/Admin.jsx'
 
 function useRoute() {
   const [hash, setHash] = useState(window.location.hash || '#/overview')
@@ -32,32 +30,37 @@ const NAV = [
 
 export default function App() {
   const { pathname, query } = useRoute()
-  const [user, setUser] = useState(undefined)
   const [lessons, setLessons] = useState([])
   const [overview, setOverview] = useState(null)
+  const [ready, setReady] = useState(false)
+  const [error, setError] = useState('')
   const [toast, setToast] = useState('')
 
   const lesson = Number(query.get('lesson') || 1)
+  const view = NAV.some((item) => item.key === pathname) ? pathname : '/overview'
+
   const setLesson = (n) => {
     const next = new URLSearchParams(query)
     next.set('lesson', String(n))
-    navigate(`${pathname}?${next.toString()}`)
+    navigate(`${view}?${next.toString()}`)
   }
 
   async function refresh() {
     const [l, o] = await Promise.all([api.lessons(), api.overview()])
-    setLessons(l.lessons)
+    setLessons(l)
     setOverview(o)
   }
 
   useEffect(() => {
+    let alive = true
     api
-      .me()
-      .then((r) => {
-        setUser(r.user)
-        if (r.user) refresh().catch(() => {})
-      })
-      .catch(() => setUser(null))
+      .init()
+      .then(() => refresh())
+      .catch((err) => alive && setError(err.message || '数据加载失败'))
+      .finally(() => alive && setReady(true))
+    return () => {
+      alive = false
+    }
   }, [])
 
   useEffect(() => {
@@ -66,19 +69,7 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [toast])
 
-  async function onAuth(u) {
-    setUser(u)
-    await refresh()
-    navigate('#/overview')
-  }
-
-  async function logout() {
-    await api.logout()
-    setUser(null)
-    navigate('#/overview')
-  }
-
-  if (user === undefined) {
+  if (!ready) {
     return (
       <div className="splash">
         <div className="splash-mark">五十</div>
@@ -87,10 +78,15 @@ export default function App() {
     )
   }
 
-  if (!user) return <Login onAuth={onAuth} />
-
-  const isAdmin = user.role === 'admin'
-  const navItems = isAdmin ? [...NAV, { key: '/admin', label: '后台', icon: Shield }] : NAV
+  if (error) {
+    return (
+      <div className="splash">
+        <div className="splash-mark">!</div>
+        <p>{error}</p>
+        <button className="primary-btn" onClick={() => window.location.reload()}>重新加载</button>
+      </div>
+    )
+  }
 
   return (
     <div className="app">
@@ -104,14 +100,15 @@ export default function App() {
             </span>
           </button>
           <nav className="nav">
-            {navItems.map((item) => {
+            {NAV.map((item) => {
               const Icon = item.icon
-              const active = pathname === item.key
               return (
                 <button
                   key={item.key}
-                  className={`nav-item ${active ? 'active' : ''}`}
-                  onClick={() => navigate(`${item.key}${item.key === '/words' || item.key === '/quiz' ? `?lesson=${lesson}` : ''}`)}
+                  className={`nav-item ${view === item.key ? 'active' : ''}`}
+                  onClick={() =>
+                    navigate(`${item.key}${item.key === '/words' || item.key === '/quiz' ? `?lesson=${lesson}` : ''}`)
+                  }
                 >
                   <Icon size={17} strokeWidth={1.8} />
                   <span>{item.label}</span>
@@ -130,45 +127,29 @@ export default function App() {
                 </span>
               </div>
             )}
-            <div className="user-chip">
+            <div className="user-chip" title="学习进度保存在当前浏览器">
               <span className="user-dot" />
-              <span>{user.username}</span>
-              {isAdmin && <span className="role-tag">管理员</span>}
+              <span>本机模式</span>
             </div>
-            <button className="icon-btn" title="退出登录" onClick={logout}>
-              <LogOut size={17} />
-            </button>
           </div>
         </div>
       </header>
 
-      {pathname !== '/admin' && (
-        <LessonBar lesson={lesson} setLesson={setLesson} lessons={lessons} />
-      )}
+      <LessonBar lesson={lesson} setLesson={setLesson} lessons={lessons} />
 
       <main className="main">
-        {pathname === '/overview' && (
-          <Overview lessons={lessons} overview={overview} onRefresh={refresh} />
-        )}
-        {pathname === '/words' && (
+        {view === '/overview' && <Overview lessons={lessons} overview={overview} onRefresh={refresh} />}
+        {view === '/words' && (
           <Words lesson={lesson} lessons={lessons} onRefresh={refresh} notify={setToast} />
         )}
-        {pathname === '/quiz' && (
+        {view === '/quiz' && (
           <Quiz lesson={lesson} lessons={lessons} onRefresh={refresh} notify={setToast} />
-        )}
-        {pathname === '/admin' && isAdmin && <Admin lessons={lessons} notify={setToast} onRefresh={refresh} />}
-        {pathname === '/admin' && !isAdmin && (
-          <div className="empty-state">
-            <Shield size={28} />
-            <h2>需要管理员权限</h2>
-            <p>第一个注册的账号会自动成为管理员。</p>
-          </div>
         )}
       </main>
 
       <footer className="footer">
         <span>
-          <Sparkles size={13} /> 单词与题目覆盖第 1–50 课 · 学习进度保存在服务器数据库
+          <Sparkles size={13} /> 单词与题目覆盖第 1–50 课 · 进度保存在本机浏览器
         </span>
       </footer>
 

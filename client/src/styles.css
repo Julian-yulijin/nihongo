@@ -885,7 +885,25 @@ a { color: inherit; }
   .hero-seal { display: none; }
 }
 
+.backup-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-top: 18px;
+  padding: 20px 22px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.backup-panel h3 { font-family: var(--serif); font-size: 18px; margin: 4px 0 6px; }
+.backup-panel p { max-width: 640px; font-size: 12.5px; line-height: 1.7; }
+.backup-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.backup-msg { margin-top: 8px; color: var(--green); font-size: 12px; }
+.text-btn.danger { color: var(--rose); }
+
 @media (max-width: 720px) {
+  .backup-panel { flex-direction: column; align-items: flex-start; gap: 14px; }
   .topbar-inner { flex-wrap: wrap; gap: 10px; padding: 8px 14px; }
   .brand-text small { display: none; }
   .nav { order: 3; width: 100%; overflow-x: auto; }

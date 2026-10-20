@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="104" fill="#1c2a45"/>
+  <rect x="44" y="44" width="424" height="424" rx="68" fill="none" stroke="#c94f3d" stroke-width="7"/>
+  <text x="256" y="318" font-family="'Noto Serif JP','Yu Mincho',serif" font-size="212" font-weight="700" fill="#f7f2e7" text-anchor="middle">五十</text>
+</svg>
