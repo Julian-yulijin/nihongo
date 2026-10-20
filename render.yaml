@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: nihongo
+    runtime: docker
+    plan: starter
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DB_PATH
+        value: /data/app.db
+    disk:
+      name: minna-data
+      mountPath: /data
+      sizeGB: 1
