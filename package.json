@@ -1,0 +1,24 @@
+{
+  "name": "minna-nihongo-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "vite build",
+    "start": "node server/index.js",
+    "seed": "node scripts/seed.mjs",
+    "data:zh": "node scripts/fetch-zh.mjs",
+    "data:seed": "node scripts/build-seed.mjs"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "lucide-react": "^1.60.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.7"
+  }
+}
